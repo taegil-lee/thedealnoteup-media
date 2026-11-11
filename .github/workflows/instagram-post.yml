@@ -1,0 +1,37 @@
+name: instagram-post
+
+# 편집장이 Actions 탭에서 직접 눌러야만 돈다. check = 확인만 / publish = 실제 게시.
+# 공개 저장소라 실패 로그를 팀장(Claude)도 볼 수 있다. 토큰은 로그에 찍히지 않는다.
+on:
+  workflow_dispatch:
+    inputs:
+      folder:
+        description: "게시물 폴더 이름 (예: 2026-11-11-live-reel)"
+        required: true
+      mode:
+        description: "check = 확인만 / publish = 게시"
+        type: choice
+        options: [check, publish]
+        default: check
+
+concurrency:
+  group: instagram-post
+  cancel-in-progress: false
+
+jobs:
+  post:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+      IG_USER_ID: "17841436729394366"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: python -m unittest discover -s tests
+      - env:
+          FOLDER: ${{ inputs.folder }}
+          MODE: ${{ inputs.mode }}
+        run: python scripts/ig_post.py "$FOLDER" $([ "$MODE" = publish ] && echo --publish)
