@@ -1,6 +1,6 @@
 """thedealnoteup 댓글 → DM 봇. GitHub Actions가 5분마다 돌린다.
 
-최근 게시물의 댓글 중 키워드('세일')가 들어간 댓글에, 그 게시물에 맞는 노션 링크를 DM(비공개 답장)으로 1번 보낸다.
+최근 게시물의 댓글 중 키워드('세일')가 들어간 댓글에, 그 게시물에 맞는 노션 링크를 DM(비공개 답장)으로 1번 보내고, dm.json에 replies가 있으면 댓글 아래 공개 답글도 단다.
 - 게시물별 링크: dm.json (게시물 주소의 /p/·/reel/ 뒤 코드 → 링크, 없으면 default)
 - 이미 보낸 댓글: state/replied.txt (댓글 ID의 해시만 저장. 공개 저장소라 이름·내용은 남기지 않는다)
 - 로그에도 댓글 단 사람과 내용은 찍지 않는다.
@@ -74,6 +74,12 @@ def main():
                      {"recipient": json.dumps({"comment_id": c["id"]}),
                       "message": json.dumps({"text": message(cfg, link)}, ensure_ascii=False)})
                 sent += 1
+                if cfg.get("replies"):  # 댓글 아래 공개 답글 (같은 문구만 반복하면 스팸처럼 보여서 돌아가며)
+                    try:
+                        http("POST", f"{api}/{c['id']}/replies?access_token={token}",
+                             {"message": cfg["replies"][int(key(c["id"]), 16) % len(cfg["replies"])]})
+                    except RuntimeError as err:
+                        print(f"  답글 실패: {err}")
             except RuntimeError as err:  # 7일 지난 댓글 등은 다시 시도해도 안 되니 기록하고 넘어간다
                 print(f"  DM 실패: {err}")
                 failed += 1
@@ -90,6 +96,7 @@ def selftest():
     assert not wants_link({"text": "예뻐요"}, "세일", "me")
     assert message({"message": "링크 {link}"}, "L") == "링크 L"
     assert key("1") == key("1") != key("2")
+    assert int(key("1"), 16) % 3 in (0, 1, 2)
     print("selftest ok")
 
 
