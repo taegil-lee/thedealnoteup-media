@@ -1,0 +1,12 @@
+{
+  "ig_user_id": "17841436729394366",
+  "keyword": "세일",
+  "recent": 10,
+  "message": "요청하신 세일 정리 보내드려요 📥\n{link}\n\n팔로우해 두시면 시작 전 세일 소식도 먼저 받아볼 수 있어요.",
+  "links": {
+    "default": "https://wholesale-plate-bad.notion.site/thedealnoteup-415fff17c6ec80bb863be18bb9f1aa48",
+    "_설명": "게시물 주소 instagram.com/reel/코드/ 의 '코드'를 키로 넣으면 그 게시물만 다른 링크를 보낸다. 없으면 default(노션 메인).",
+    "_진행중_예시": "https://wholesale-plate-bad.notion.site/415fff17c6ec81fda9e5e53ead952125",
+    "_예정_예시": "https://wholesale-plate-bad.notion.site/415fff17c6ec81e289d4d3c2aa6959d8"
+  }
+}
