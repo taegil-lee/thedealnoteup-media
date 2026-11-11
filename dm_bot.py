@@ -42,6 +42,17 @@ def wants_link(comment, keyword, me):
     return keyword in (comment.get("text") or "") and comment.get("username") != me
 
 
+def pick_link(cfg, media):
+    """게시물 코드로 먼저 찾고, 없으면 캡션 문구로, 그래도 없으면 노션 메인."""
+    links = cfg["links"]
+    if shortcode(media.get("permalink")) in links:
+        return links[shortcode(media.get("permalink"))]
+    for phrase, link in cfg.get("caption_links", {}).items():
+        if phrase in (media.get("caption") or ""):
+            return link
+    return links["default"]
+
+
 def message(cfg, link):
     return cfg["message"].replace("{link}", link)
 
@@ -61,9 +72,9 @@ def main():
         sys.exit("✗ 토큰으로 계정을 읽지 못함")
     done = set(STATE.read_text().split()) if STATE.exists() else set()
     sent = failed = 0
-    media = http("GET", f"{api}/{ig_id}/media?fields=id,permalink&limit={cfg.get('recent', 10)}&access_token={token}")
+    media = http("GET", f"{api}/{ig_id}/media?fields=id,permalink,caption&limit={cfg.get('recent', 10)}&access_token={token}")
     for m in media.get("data", []):
-        link = cfg["links"].get(shortcode(m.get("permalink")), cfg["links"]["default"])
+        link = pick_link(cfg, m)
         # shortcut: 게시물당 최근 댓글 50개만 본다, 댓글이 더 많아지면 페이지 넘김 추가
         comments = http("GET", f"{api}/{m['id']}/comments?fields=id,text,username&limit=50&access_token={token}")
         for c in comments.get("data", []):
@@ -95,6 +106,10 @@ def selftest():
     assert not wants_link({"text": "세일", "username": "me"}, "세일", "me")
     assert not wants_link({"text": "예뻐요"}, "세일", "me")
     assert message({"message": "링크 {link}"}, "L") == "링크 L"
+    c = {"links": {"default": "M", "X1": "P"}, "caption_links": {"곧 끝나는 세일": "LIVE"}}
+    assert pick_link(c, {"permalink": "https://x/reel/X1/", "caption": "곧 끝나는 세일"}) == "P"
+    assert pick_link(c, {"permalink": "https://x/reel/Y/", "caption": "곧 끝나는 세일만"}) == "LIVE"
+    assert pick_link(c, {"permalink": "https://x/reel/Y/", "caption": "소개"}) == "M"
     assert key("1") == key("1") != key("2")
     assert int(key("1"), 16) % 3 in (0, 1, 2)
     print("selftest ok")
