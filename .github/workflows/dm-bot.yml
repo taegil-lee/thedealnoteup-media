@@ -1,6 +1,6 @@
 name: dm-bot
 
-# 5분마다 시작해서 그 안에서 30초 간격으로 9번 댓글을 확인하고(GitHub 예약은 5분이 최소), '세일' 댓글에 노션 링크를 DM으로 보낸다. 공개 저장소라 Actions 시간은 무료.
+# cron-job.org가 1분마다 workflow_dispatch로 켜고(GitHub 예약은 늦거나 빠져서 보조로만), 켜질 때마다 30초 간격으로 2번 댓글을 확인해서 '세일' 댓글에 노션 링크를 DM으로 보낸다. 공개 저장소라 Actions 시간은 무료.
 # GitHub 예약 실행은 몇 분씩 늦을 수 있다. 바로 돌리려면 Actions 탭에서 Run workflow.
 on:
   schedule:
@@ -17,7 +17,7 @@ permissions:
 jobs:
   bot:
     runs-on: ubuntu-24.04
-    timeout-minutes: 6
+    timeout-minutes: 3
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
@@ -27,9 +27,9 @@ jobs:
       - env:
           IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
         run: |
-          for i in 1 2 3 4 5 6 7 8 9; do
+          for i in 1 2; do
             python dm_bot.py || true  # 한 번 실패해도 다음 확인은 계속
-            if [ $i -lt 9 ]; then sleep 30; fi
+            if [ $i -lt 2 ]; then sleep 30; fi
           done
       - run: |
           git config user.name "dm-bot"
