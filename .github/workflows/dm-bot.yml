@@ -3,8 +3,9 @@ name: dm-bot
 # cron-job.org가 1분마다 workflow_dispatch로 켜고(GitHub 예약은 늦거나 빠져서 보조로만), 켜질 때마다 30초 간격으로 2번 댓글을 확인해서 '세일' 댓글에 노션 링크를 DM으로 보낸다. 공개 저장소라 Actions 시간은 무료.
 # GitHub 예약 실행은 몇 분씩 늦을 수 있다. 바로 돌리려면 Actions 탭에서 Run workflow.
 on:
-  schedule:
-    - cron: "*/5 * * * *"
+  # 편집장 요청으로 자동 실행 멈춤(2026-11-16). 다시 켜려면 아래 두 줄의 # 을 지운다.
+  # schedule:
+  #   - cron: "*/5 * * * *"
   workflow_dispatch:
 
 concurrency:
